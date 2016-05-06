@@ -137,12 +137,14 @@ end
 
 と出力されますが、これらはscanに指定できるパラメータのようです。
 
-## Slack
+## テスト結果のSlack連携
 
 テスト結果をSlackに連携できるようにしてみます。  
 Slack側でIncoming WebHooksを登録し、
 
 ![slack_webhook1](images/slack_webhook1.jpg)
+
+generalチャンネルにポストされるようにします。
 
 ![slack_webhook2](images/slack_webhook2.jpg)
 
