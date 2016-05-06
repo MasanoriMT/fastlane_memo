@@ -142,9 +142,9 @@ end
 テスト結果をSlackに連携できるようにしてみます。  
 Slack側でIncoming WebHooksを登録し、
 
-<img src='images/slack_webhook1.jpg' />
+![slack_webhook1](images/slack_webhook1.jpg)
 
-<img src='images/slack_webhook2.jpg' />
+![slack_webhook2](images/slack_webhook2.jpg)
 
 そのURLを以下のようにFastfile中に設定します。
 
@@ -156,4 +156,4 @@ end
 
 このようにしてから、先ほどと同様にテストを実行すると、実行結果がSlackに通知されるようになります。
 
-<img src='images/slack_webhook3.jpg' />
+![slack_webhook3](images/slack_webhook3.jpg)
