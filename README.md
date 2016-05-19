@@ -16,23 +16,86 @@ fastlaneとはあまり関係ないですが、gitignoreを以下から取得し
 
 https://github.com/github/gitignore/blob/master/Swift.gitignore
 
-## fastlaneをbundlerでインストール
+## fastlaneをインストール
 
-プロジェクトディレクトリに移動して、Gemfileを用意し、
+    $ gem install fastlane
 
-    source "https://rubygems.org"
-    gem 'fastlane'
+当初bundlerで個別にインストールするようにしていましたが、ipaファイルの生成でエラーになる現象が起きたため方針を変えました。
+このエラーの根本原因を把握できていないのですが、ipaファイル生成で利用するipatoolがRubyで書かれていることが関係しているようです。
 
-bundlerでfastlaneをインストール。  
-（rbenv-binstubsを導入している前提）
+```
+2016-05-18 09:52:26 +0000 [MT] Running /Applications/Xcode.app/Contents/Developer/usr/bin/ipatool '/var/folders/_8/mklvgfcx2wv5tmmj49tv_lj40000gn/T/IDEDistributionThinningStep.Wu8' '--json' '/var/folders/_8/mklvgfcx2wv5tmmj49tv_lj40000gn/T/ipatool-json-filepath-eKZ' '--info' '--toolchain' '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr' '--platforms' '/Applications/Xcode.app/Contents/Developer/Platforms'
+2016-05-18 09:52:26 +0000  ruby 2.0.0p648 (2015-12-16 revision 53162) [universal.x86_64-darwin15]
+2016-05-18 09:52:26 +0000  /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/spec_set.rb:94:in `block in materialize': Could not find i18n-0.7.0 in any of the sources (Bundler::GemNotFound)
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/spec_set.rb:87:in `map!'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/spec_set.rb:87:in `materialize'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/definition.rb:137:in `specs'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/definition.rb:182:in `specs_for'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/definition.rb:171:in `requested_specs'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/environment.rb:18:in `requested_specs'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/runtime.rb:13:in `setup'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler.rb:92:in `setup'
+	from /Users/matoh/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/bundler-1.11.2/lib/bundler/setup.rb:18:in `<top (required)>'
+	from /System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/lib/ruby/2.0.0/rubygems/core_ext/kernel_require.rb:55:in `require'
+	from /System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/lib/ruby/2.0.0/rubygems/core_ext/kernel_require.rb:55:in `require'
+2016-05-18 09:52:26 +0000 [MT] /Applications/Xcode.app/Contents/Developer/usr/bin/ipatool exited with 1
+```
 
-    bundle install --path=vendor/bundle --binstubs=vendor/bin
+上のログをみると、fastlane自体はrbenvのRuby(2.3.1)を利用していて、ipatoolはsystemのRuby(2.0.0p648)を利用しています。
+bundelerを利用した場合、ローカルディレクトリ配下のgemを利用しようとしているはずで、それがためにipatoolが依存するgemを見つけられないということになっていると想像しています。  
+systemのRubyにインストールされたgemを確認してみると、
 
-これで、`bundle exec`なしでfastlaneを実行できます。
+```
+$ rbenv local system
+$ rbenv versions
+* system (set by /Users/matoh/.ruby-version)
+  2.3.1
+$ gem environment
+RubyGems Environment:
+  - RUBYGEMS VERSION: 2.0.14.1
+  - RUBY VERSION: 2.0.0 (2015-12-16 patchlevel 648) [universal.x86_64-darwin15]
+  - INSTALLATION DIRECTORY: /Library/Ruby/Gems/2.0.0
+  - RUBY EXECUTABLE: /System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/bin/ruby
+  - EXECUTABLE DIRECTORY: /usr/local/bin
+  - RUBYGEMS PLATFORMS:
+    - ruby
+    - universal-darwin-15
+  - GEM PATHS:
+     - /Library/Ruby/Gems/2.0.0
+     - /Users/matoh/.gem/ruby/2.0.0
+     - /System/Library/Frameworks/Ruby.framework/Versions/2.0/usr/lib/ruby/gems/2.0.0
+  - GEM CONFIGURATION:
+     - :update_sources => true
+     - :verbose => true
+     - :backtrace => false
+     - :bulk_threshold => 1000
+  - REMOTE SOURCES:
+     - https://rubygems.org/
+$ gem li
+
+*** LOCAL GEMS ***
+
+bigdecimal (1.2.0)
+CFPropertyList (2.3.2, 2.2.8)
+i18n (0.7.0)
+io-console (0.4.2)
+json (1.8.3, 1.7.7)
+libxml-ruby (2.6.0)
+minitest (4.3.2)
+nokogiri (1.5.6)
+psych (2.0.0)
+rake (0.9.6)
+rdoc (4.0.0)
+sqlite3 (1.3.11, 1.3.7)
+test-unit (2.0.0.0)
+```
+
+となっており（いくつかはトラブルシューティングの過程でインストール、更新している）、これらのうち必要なものをbundlerで補っていけばいいのかとも思ったのですが、そもそもbundlerにそこまで拘る必要もないだろうと考えました。
+
 
 ## セットアップ
 
-fastlaneのセットアップは以下のinitコマンドで行います。
+プロジェクトディレクトリに移動して、initコマンドでfastlaneのセットアップを行います。
 あれこれと問われるので、ログを貼っておきます。
 このあたりは今後内容がころころ変わってくる部分かもしれません。
 
